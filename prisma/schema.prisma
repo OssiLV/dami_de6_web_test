@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model sysdiagrams {
+  name         String @db.NVarChar(128)
+  principal_id Int
+  diagram_id   Int    @id(map: "PK__sysdiagr__C2B05B610AD2A005") @default(autoincrement())
+  version      Int?
+  definition   Bytes?
+
+  @@unique([principal_id, name], map: "UK_principal_name")
+}
+
+model tblCustomerList {
+  CustomerID   String  @id(map: "PK_SL_tblCustomerList") @db.VarChar(20)
+  CustomerName String  @db.NVarChar(250)
+  TaxCode      String? @db.VarChar(20)
+  Address      String? @db.NVarChar(250)
+}
+
+model tblItemList {
+  ItemID         String  @id(map: "PK_tblItemList") @db.VarChar(20)
+  ItemName       String  @db.NVarChar(250)
+  InvUnitOfMeasr String? @db.VarChar(20)
+}
+
+model tblOrderDetail {
+  RowDetailID    String         @id(map: "PK_tblOrderDetail") @db.UniqueIdentifier
+  OrderMasterID  String         @db.UniqueIdentifier
+  LineNumber     Int
+  ItemID         String         @db.VarChar(20)
+  Quantity       Float
+  Price          Float
+  Amount         Float          @db.Money
+  tblOrderMaster tblOrderMaster @relation(fields: [OrderMasterID], references: [OrderMasterID], onDelete: Cascade, map: "FK_tblOrderDetail_tblOrderMaster")
+
+  @@unique([OrderMasterID, ItemID], map: "UK_tblOrderDetail")
+}
+
+model tblOrderMaster {
+  OrderMasterID  String           @id(map: "PK_tblOrderMaster") @db.UniqueIdentifier
+  OrderDate      DateTime
+  OrderNo        String           @db.VarChar(20)
+  CustomerID     String           @db.VarChar(20)
+  TotalAmount    Float            @db.Money
+  DivSubID       String           @db.VarChar(20)
+  tblOrderDetail tblOrderDetail[]
+}
